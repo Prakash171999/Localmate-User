@@ -96,18 +96,17 @@
         app:layout_constraintTop_toBottomOf="@+id/login_btn" />
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/passwordForgot"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:clickable="true"
         android:fontFamily="@font/roboto_light"
-        android:text="@string/forgot_password"
+        android:text="Forgot your password?"
         android:textColor="#000000"
-        android:textSize="14sp"
+        android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/sign_up"
         app:layout_constraintVertical_bias="0.05" />
@@ -133,7 +132,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintTop_toBottomOf="@+id/passwordForgot"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView

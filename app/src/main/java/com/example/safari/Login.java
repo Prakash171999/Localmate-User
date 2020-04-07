@@ -49,8 +49,8 @@ public class Login extends AppCompatActivity implements Response.ErrorListener, 
     private ProgressBar loading_login;
     private Integer isDriver;
     private TextView internetConn;
-    //Instances for Location
 
+    private  TextView forgotPwd;
 
 
     @Override
@@ -96,13 +96,24 @@ public class Login extends AppCompatActivity implements Response.ErrorListener, 
         password = findViewById(R.id.in_password);
         btn_login = findViewById(R.id.login_btn);
         loading_login.setVisibility(View.GONE);
+        forgotPwd = findViewById(R.id.passwordForgot);
 
         btn_login.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
+            public void onClick(View view2) {
                 loginUser();
             }
         });
+
+
+        forgotPwd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view3) {
+                Intent intent = new Intent(getApplicationContext(), forgotPassword.class);
+                startActivity(intent);
+            }
+        });
+
     }
 
 

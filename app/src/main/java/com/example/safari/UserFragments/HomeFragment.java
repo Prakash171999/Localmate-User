@@ -11,12 +11,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
-import com.example.safari.PickUpPoint;
+import com.example.safari.PickUp;
 import com.example.safari.R;
-import com.example.safari.Register;
-import com.example.safari.SessionManager;
-
-import static com.mapbox.mapboxsdk.Mapbox.getApplicationContext;
 
 
 /**
@@ -41,7 +37,7 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                Intent intent=new Intent(context, PickUpPoint.class);
+                Intent intent=new Intent(context, PickUp.class);
                         startActivity(intent);
             }
         });

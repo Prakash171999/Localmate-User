@@ -220,23 +220,23 @@ public class Register extends AppCompatActivity implements Response.ErrorListene
 
         //validating inputs
         if (TextUtils.isEmpty(full_name)) {
-            fullname.setError("Please enter your email");
+            fullname.setError("Please enter your fullname");
             fullname.requestFocus();
             return;
         }
 
         if (TextUtils.isEmpty(phone_no)) {
-            phoneno.setError("Please enter your password");
+            phoneno.setError("Please enter your phoneno");
             phoneno.requestFocus();
             return;
         }
         if (TextUtils.isEmpty(DOB)) {
-            dob .setError("Please enter your password");
+            dob .setError("Please enter your dob");
             dob.requestFocus();
             return;
         }
         if (TextUtils.isEmpty(Email)) {
-            email.setError("Please enter your password");
+            email.setError("Please enter your email");
             email.requestFocus();
             return;
         }

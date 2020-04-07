@@ -14,7 +14,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".PickUpPoint" />
+
+        <activity android:name=".resetPassword" />
+        <activity android:name=".forgotPassword" />
+        <activity android:name=".PickUp" />
         <activity android:name=".home" />
         <activity android:name=".Register" />
         <activity android:name=".Login">
