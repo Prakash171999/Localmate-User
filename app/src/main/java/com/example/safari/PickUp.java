@@ -13,6 +13,8 @@ import android.widget.Toast;
 
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.MapboxDirections;
+import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.api.geocoding.v5.GeocodingCriteria;
 import com.mapbox.api.geocoding.v5.MapboxGeocoding;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
@@ -50,7 +52,6 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
-import static java.lang.String.format;
 
 /**
  * Drop a marker at a specific location and then perform
@@ -66,6 +67,11 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
     private PermissionsManager permissionsManager;
     private ImageView hoveringMarker;
     private Layer droppedMarkerLayer;
+    private DirectionsRoute currentRoute;
+    private MapboxDirections client;
+    private Point origin;
+    private Point destination;
+
 
 
     @Override
@@ -87,6 +93,19 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
             @Override
             public void onStyleLoaded(@NonNull final Style style) {
                 enableLocationPlugin(style);
+
+//                // Set the origin location to the Alhambra landmark in Granada, Spain.
+//                origin = Point.fromLngLat(, );
+//
+//                // Set the destination location to the Plaza del Triunfo in Granada, Spain.
+//                destination = Point.fromLngLat(, );
+
+//                initSource(style);
+//
+//                initLayers(style);
+//
+//                // Get the directions route from the Mapbox Directions API
+//                getRoute(mapboxMap, origin, destination);
 
                 selectDrivers = findViewById(R.id.chooseDriver);
                 selectDrivers.setOnClickListener(new View.OnClickListener() {
@@ -146,7 +165,7 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
                             }
 
                             // Use the map camera target's coordinates to make a reverse geocoding search
-//                            reverseGeocode(Point.fromLngLat(mapTargetLatLng.getLongitude(), mapTargetLatLng.getLatitude()));
+                            reverseGeocode(Point.fromLngLat(mapTargetLatLng.getLongitude(), mapTargetLatLng.getLatitude()));
                             System.out.println("LATITUDE==>" + mapTargetLatLng.getLatitude());
                             System.out.println("LONGITUDE==>" + mapTargetLatLng.getLongitude());
                             Toast.makeText(PickUp.this, "Latitude->" + mapTargetLatLng.getLatitude() + "" + "Longitude->" + mapTargetLatLng.getLongitude(), Toast.LENGTH_LONG).show();
@@ -268,53 +287,53 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
 //     * @param point The location to use for the search
      */
 
-//    private void reverseGeocode(final Point point) {
-//        try {
-//            MapboxGeocoding client = MapboxGeocoding.builder()
-//                    .accessToken(getString(R.string.mapbox_access_token))
-//                    .query(Point.fromLngLat(point.longitude(), point.latitude()))
-//                    .geocodingTypes(GeocodingCriteria.TYPE_ADDRESS)
-//                    .build();
-//
-//            client.enqueueCall(new Callback<GeocodingResponse>() {
-//                @Override
-//                public void onResponse(Call<GeocodingResponse> call, Response<GeocodingResponse> response) {
-//
-//                    if (response.body() != null) {
-//                        List<CarmenFeature> results = response.body().features();
-//                        if (results.size() > 0) {
-//                            CarmenFeature feature = results.get(0);
-//
-//                            // If the geocoder returns a result, we take the first in the list and show a Toast with the place name.
-//                            mapboxMap.getStyle(new Style.OnStyleLoaded() {
-//                                @SuppressLint("StringFormatInvalid")
-//                                @Override
-//                                public void onStyleLoaded(@NonNull Style style) {
-//                                    if (style.getLayer(DROPPED_MARKER_LAYER_ID) != null) {
-//                                        Toast.makeText(PickUp.this,
-//                                                String.format(getString(R.string.location_picker_place_name_result),
-//                                                        feature.placeName()), Toast.LENGTH_SHORT).show();
-//                                    }
-//                                }
-//                            });
-//
-//                        } else {
-//                            Toast.makeText(PickUp.this,
-//                                    getString(R.string.location_picker_dropped_marker_snippet_no_results), Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Call<GeocodingResponse> call, Throwable throwable) {
-//                    Timber.e("Geocoding Failure: %s", throwable.getMessage());
-//                }
-//            });
-//        } catch (ServicesException servicesException) {
-//            Timber.e("Error geocoding: %s", servicesException.toString());
-//            servicesException.printStackTrace();
-//        }
-//    }
+    private void reverseGeocode(final Point point) {
+        try {
+            MapboxGeocoding client = MapboxGeocoding.builder()
+                    .accessToken(getString(R.string.mapbox_access_token))
+                    .query(Point.fromLngLat(point.longitude(), point.latitude()))
+                    .geocodingTypes(GeocodingCriteria.TYPE_ADDRESS)
+                    .build();
+
+            client.enqueueCall(new Callback<GeocodingResponse>() {
+                @Override
+                public void onResponse(Call<GeocodingResponse> call, Response<GeocodingResponse> response) {
+
+                    if (response.body() != null) {
+                        List<CarmenFeature> results = response.body().features();
+                        if (results.size() > 0) {
+                            CarmenFeature feature = results.get(0);
+
+                            // If the geocoder returns a result, we take the first in the list and show a Toast with the place name.
+                            mapboxMap.getStyle(new Style.OnStyleLoaded() {
+                                @SuppressLint("StringFormatInvalid")
+                                @Override
+                                public void onStyleLoaded(@NonNull Style style) {
+                                    if (style.getLayer(DROPPED_MARKER_LAYER_ID) != null) {
+                                        Toast.makeText(PickUp.this,
+                                                String.format(getString(R.string.location_picker_place_name_result),
+                                                        feature.placeName()), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
+                        } else {
+                            Toast.makeText(PickUp.this,
+                                    getString(R.string.location_picker_dropped_marker_snippet_no_results), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<GeocodingResponse> call, Throwable throwable) {
+                    Timber.e("Geocoding Failure: %s", throwable.getMessage());
+                }
+            });
+        } catch (ServicesException servicesException) {
+            Timber.e("Error geocoding: %s", servicesException.toString());
+            servicesException.printStackTrace();
+        }
+    }
 
     @SuppressWarnings( {"MissingPermission"})
     private void enableLocationPlugin(@NonNull Style loadedMapStyle) {

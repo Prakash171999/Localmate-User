@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 
 import com.example.safari.Models.DLocation;
 import com.example.safari.Models.Users;
+import com.example.safari.Models.originDesLocation;
 
 public class SessionManager {
         public static final String SHARED_PREF_NAME = "register_login";
@@ -17,7 +18,15 @@ public class SessionManager {
         public static final String KEY_DRIVERID = "driverID";
         public static final String KEY_LATITUDE = "driver_latitude";
         public static final String KEY_LONGITUDE = "driver_longitude";
-        private static SessionManager mInstance;
+        public static final String KEY_OLATITUDE = "olatitude";
+        public static final String KEY_OLONGITUDE = "olongitude";
+        public static final String KEY_DLATITUDE = "dest_latitude";
+        public static final String KEY_DLONGITUDE = "dest_longitude";
+        public static final String KEY_DISTANCE = "total_distance";
+        public static final String KEY_PRICE = "total_price";
+
+
+    private static SessionManager mInstance;
         private static Context ctx;
 
         private SessionManager(Context context) {
@@ -49,6 +58,19 @@ public class SessionManager {
             SharedPreferences.Editor editor = DriverLocation.edit();
             editor.putString(KEY_LATITUDE, dlocation.getLatitude());
             editor.putString(KEY_LONGITUDE, dlocation.getLongitude());
+            editor.apply();
+        }
+
+
+        public void userCoordinates(originDesLocation coordinates){
+            SharedPreferences UserCoordinates = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = UserCoordinates.edit();
+            editor.putString(KEY_OLATITUDE, coordinates.getoLatitude());
+            editor.putString(KEY_OLONGITUDE, coordinates.getoLongitude());
+            editor.putString(KEY_DLATITUDE, coordinates.getDLatitude());
+            editor.putString(KEY_DLONGITUDE, coordinates.getDLongitude());
+            editor.putString(KEY_DISTANCE, coordinates.getDistance());
+            editor.putString(KEY_PRICE, coordinates.getPrice());
             editor.apply();
         }
 
