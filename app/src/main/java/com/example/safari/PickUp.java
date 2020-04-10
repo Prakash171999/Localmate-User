@@ -1,25 +1,44 @@
 package com.example.safari;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.example.safari.Models.destinationLocation;
+import com.example.safari.Models.originLocation;
+import com.mapbox.android.core.location.LocationEngine;
+import com.mapbox.android.core.location.LocationEngineCallback;
+import com.mapbox.android.core.location.LocationEngineProvider;
+import com.mapbox.android.core.location.LocationEngineRequest;
+import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.MapboxDirections;
+import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.api.geocoding.v5.GeocodingCriteria;
 import com.mapbox.api.geocoding.v5.MapboxGeocoding;
 import com.mapbox.api.geocoding.v5.models.CarmenFeature;
 import com.mapbox.api.geocoding.v5.models.GeocodingResponse;
 import com.mapbox.core.exceptions.ServicesException;
+import com.mapbox.geojson.Feature;
+import com.mapbox.geojson.FeatureCollection;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 //import com.mapbox.mapboxandroiddemo.R;
 import com.mapbox.mapboxsdk.Mapbox;
@@ -33,9 +52,12 @@ import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
 import com.mapbox.mapboxsdk.style.layers.Layer;
+import com.mapbox.mapboxsdk.style.layers.LineLayer;
+import com.mapbox.mapboxsdk.style.layers.Property;
 import com.mapbox.mapboxsdk.style.layers.SymbolLayer;
 import com.mapbox.mapboxsdk.style.sources.GeoJsonSource;
 
+import java.lang.ref.WeakReference;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -46,31 +68,36 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import timber.log.Timber;
 
+import static com.mapbox.core.constants.Constants.PRECISION_6;
 import static com.mapbox.mapboxsdk.style.layers.Property.NONE;
 import static com.mapbox.mapboxsdk.style.layers.Property.VISIBLE;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconAllowOverlap;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconIgnorePlacement;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.iconImage;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineCap;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
+import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.visibility;
 
 /**
  * Drop a marker at a specific location and then perform
  * reverse geocoding to retrieve and display the location's address
  */
-public class PickUp extends AppCompatActivity implements PermissionsListener, OnMapReadyCallback {
+public class PickUp extends AppCompatActivity implements PermissionsListener, OnMapReadyCallback, View.OnClickListener {
 
     private static final String DROPPED_MARKER_LAYER_ID = "DROPPED_MARKER_LAYER_ID";
     private MapView mapView;
     private MapboxMap mapboxMap;
     private Button selectLocationButton;
-    private Button selectDrivers;
+    private Button showRoute;
     private PermissionsManager permissionsManager;
     private ImageView hoveringMarker;
     private Layer droppedMarkerLayer;
-    private DirectionsRoute currentRoute;
-    private MapboxDirections client;
-    private Point origin;
-    private Point destination;
+    private LocationEngine locationEngine;
+    private long DEFAULT_INTERVAL_IN_MILLISECONDS = 1000L;
+    private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
+    private MainActivityLocationCallback callback = new MainActivityLocationCallback(this);
 
 
 
@@ -84,6 +111,8 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+        ImageButton UserLoc = findViewById(R.id.currentlocation);
+        UserLoc.setOnClickListener(this);
     }
 
     @Override
@@ -94,24 +123,13 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
             public void onStyleLoaded(@NonNull final Style style) {
                 enableLocationPlugin(style);
 
-//                // Set the origin location to the Alhambra landmark in Granada, Spain.
-//                origin = Point.fromLngLat(, );
-//
-//                // Set the destination location to the Plaza del Triunfo in Granada, Spain.
-//                destination = Point.fromLngLat(, );
-
-//                initSource(style);
-//
-//                initLayers(style);
-//
-//                // Get the directions route from the Mapbox Directions API
-//                getRoute(mapboxMap, origin, destination);
-
-                selectDrivers = findViewById(R.id.chooseDriver);
-                selectDrivers.setOnClickListener(new View.OnClickListener() {
+                showRoute = findViewById(R.id.route);
+                showRoute.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         //SHOW THE MAP VIEW WITH DRIVER LOCATION
+                        Intent intent = new Intent(getApplicationContext(), MapRoute.class);
+                        startActivity(intent);
                     }
                 });
 
@@ -168,8 +186,18 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
                             reverseGeocode(Point.fromLngLat(mapTargetLatLng.getLongitude(), mapTargetLatLng.getLatitude()));
                             System.out.println("LATITUDE==>" + mapTargetLatLng.getLatitude());
                             System.out.println("LONGITUDE==>" + mapTargetLatLng.getLongitude());
-                            Toast.makeText(PickUp.this, "Latitude->" + mapTargetLatLng.getLatitude() + "" + "Longitude->" + mapTargetLatLng.getLongitude(), Toast.LENGTH_LONG).show();
 
+                            String desLatitude = Double.toString(mapTargetLatLng.getLatitude());
+                            String desLongitude = Double.toString(mapTargetLatLng.getLongitude());
+
+                            destinationLocation destLocation = new destinationLocation(
+                                    desLatitude,
+                                    desLongitude
+                            );
+                            //Storing the user object details in SessionManager
+                            SessionManager.getInstance(getApplicationContext()).DestinationLocation(destLocation);
+
+                            Toast.makeText(PickUp.this, "Latitude->" + mapTargetLatLng.getLatitude() + "" + "Longitude->" + mapTargetLatLng.getLongitude(), Toast.LENGTH_LONG).show();
 
                         } else {
 
@@ -350,10 +378,128 @@ public class PickUp extends AppCompatActivity implements PermissionsListener, On
             // Set the component's camera mode
             locationComponent.setCameraMode(CameraMode.TRACKING);
             locationComponent.setRenderMode(RenderMode.NORMAL);
-
+//            String orgLatitude = Double.toString(locationComponent.getLastKnownLocation().getLatitude());
+//            String orgLongitude = Double.toString(locationComponent.getLastKnownLocation().getLongitude());
+//
+//            originLocation orgLocation = new originLocation(
+//                    orgLatitude,
+//                    orgLongitude
+//            );
+//            //Storing the user object details in SessionManager
+//            SessionManager.getInstance(getApplicationContext()).OriginLocation(orgLocation);
+//
+//            Toast.makeText(PickUp.this, "Origin Latitude->" + orgLatitude + "" + "Origin Longitude->" + orgLongitude, Toast.LENGTH_LONG).show();
+            initLocationEngine();
         } else {
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
+        }
+    }
+
+    /**
+     * Set up the LocationEngine and the parameters for querying the device's location
+     */
+    @SuppressLint("MissingPermission")
+    private void initLocationEngine() {
+        locationEngine = LocationEngineProvider.getBestLocationEngine(this);
+
+        LocationEngineRequest request = new LocationEngineRequest.Builder(DEFAULT_INTERVAL_IN_MILLISECONDS)
+                .setPriority(LocationEngineRequest.PRIORITY_HIGH_ACCURACY)
+                .setMaxWaitTime(DEFAULT_MAX_WAIT_TIME).build();
+
+        locationEngine.requestLocationUpdates(request, callback, getMainLooper());
+        locationEngine.getLastLocation(callback);
+    }
+
+    @Override
+    public void onClick(View v) {
+        // Check if permissions are enabled and if not request
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+
+            // Get an instance of the component
+            LocationComponent locationComponent = mapboxMap.getLocationComponent();
+
+            // Enable to make component visible
+            locationComponent.setLocationComponentEnabled(true);
+
+            // Set the component's camera mode
+            locationComponent.setCameraMode(CameraMode.TRACKING);
+
+            // Set the component's render mode
+            locationComponent.setRenderMode(RenderMode.COMPASS);
+
+//            initLocationEngine();
+        } else {
+            permissionsManager = new PermissionsManager(this);
+            permissionsManager.requestLocationPermissions(this);
+        }
+    }
+
+    private class MainActivityLocationCallback
+            implements LocationEngineCallback<LocationEngineResult> {
+
+        private final WeakReference<PickUp> activityWeakReference;
+
+        MainActivityLocationCallback(PickUp activity) {
+            this.activityWeakReference = new WeakReference<>(activity);
+        }
+
+        /**
+         * The LocationEngineCallback interface's method which fires when the device's location has changed.
+         *
+         * @param result the LocationEngineResult object which has the last known location within it.
+         */
+        @Override
+        public void onSuccess(LocationEngineResult result) {
+            PickUp activity = activityWeakReference.get();
+
+            if (activity != null) {
+                Location location = result.getLastLocation();
+
+                if (location == null) {
+                    return;
+                }
+
+//                // Create a Toast which displays the new location's coordinates
+//                Toast.makeText(activity, String.format(activity.getString(R.string.new_location),
+//                        String.valueOf(result.getLastLocation().getLatitude()), String.valueOf(result.getLastLocation().getLongitude())),
+//                        Toast.LENGTH_SHORT).show();
+
+                Double latii = result.getLastLocation().getLatitude();
+                String OriginLat = Double.toString(latii);
+                System.out.println("OLatitude==>" + OriginLat);
+
+                Double longi = result.getLastLocation().getLongitude();
+                String OriginLongi = Double.toString(longi);
+                System.out.println("OLongitude==>" + OriginLongi);
+
+                originLocation orgLocation = new originLocation(
+                        OriginLat,
+                        OriginLongi
+                );
+                //Storing the user object details in SessionManager
+                SessionManager.getInstance(getApplicationContext()).OriginLocation(orgLocation);
+
+                // Pass the new location to the Maps SDK's LocationComponent
+                if (activity.mapboxMap != null && result.getLastLocation() != null) {
+                    activity.mapboxMap.getLocationComponent().forceLocationUpdate(result.getLastLocation());
+                }
+            }
+        }
+
+        /**
+         * The LocationEngineCallback interface's method which fires when the device's location can not be captured
+         *
+         * @param exception the exception message
+         */
+        @Override
+        public void onFailure(@NonNull Exception exception) {
+            Log.d("LocationChangeActivity", exception.getLocalizedMessage());
+            PickUp activity = activityWeakReference.get();
+            if (activity != null) {
+                Toast.makeText(activity, exception.getLocalizedMessage(),
+                        Toast.LENGTH_SHORT).show();
+            }
         }
     }
 }

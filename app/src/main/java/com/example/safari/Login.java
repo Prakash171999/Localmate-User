@@ -199,15 +199,14 @@ public class Login extends AppCompatActivity implements Response.ErrorListener, 
             SessionManager.getInstance(getApplicationContext()).userLogin(user);
             finish();
 
+                if (!userid.equals("")) {
+                    Toast.makeText(Login.this, "User Login Success!", Toast.LENGTH_SHORT).show();
+                    Intent intent = new Intent(getApplicationContext(), home.class);
+                    startActivity(intent);
 
-            if (!userid.equals("")) {
-                Toast.makeText(Login.this, "User Login Success!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), home.class);
-                startActivity(intent);
-
-            } else {
-                Toast.makeText(Login.this, "Login failed!", Toast.LENGTH_SHORT).show();
-            }
+                } else {
+                    Toast.makeText(Login.this, "Login failed!", Toast.LENGTH_SHORT).show();
+                }
         }
         catch (JSONException e) {
             e.printStackTrace();

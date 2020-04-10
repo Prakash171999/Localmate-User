@@ -54,4 +54,5 @@
     <string name="location_picker_place_name_result">place name</string>
     <string name="user_location_permission_explanation">permission explanation</string>
     <string name="user_location_permission_not_granted">permission not granted</string>
+    <string name="directions_activity_toast_message" />
 </resources>
