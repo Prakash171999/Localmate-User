@@ -2,9 +2,9 @@ package com.example.safari.Models;
 
 public class DistanceNPrice {
 
-    private String oLatitude, oLongitude, dLatitude, dLongitude, distance, price;
+    private String distance, price;
 
-    public DistanceNPrice(String distance, String price){
+    public DistanceNPrice(String  distance, String price){
         this.distance = distance;
         this.price = price;
     }

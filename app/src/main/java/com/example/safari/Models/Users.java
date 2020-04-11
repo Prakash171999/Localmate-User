@@ -1,10 +1,10 @@
 package com.example.safari.Models;
 
 public class Users {
-    private int id;
-    private String fullname, phoneno, email, dob, driver_id;
 
-    public Users(int id, String fullname, String email, String phoneno, String dob, String driver_id) {
+    private String fullname, phoneno, email, dob, driver_id, id;
+
+    public Users(String id, String fullname, String email, String phoneno, String dob, String driver_id) {
         this.phoneno = phoneno;
         this.email = email;
         this.dob = dob;
@@ -12,11 +12,11 @@ public class Users {
         this.driver_id = driver_id;
     }
 
-    public int getId(){
+    public String getId(){
         return id;
     }
 
-    public void setId(int id){
+    public void get(String id){
         this.id=id;
     }
 

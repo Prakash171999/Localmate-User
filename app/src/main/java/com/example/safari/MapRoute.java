@@ -4,13 +4,17 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import com.example.safari.Models.DistanceNPrice;
+import com.example.safari.Models.destinationLocation;
 import com.mapbox.android.core.permissions.PermissionsManager;
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.api.directions.v5.MapboxDirections;
@@ -56,7 +60,7 @@ import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineColor;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineJoin;
 import static com.mapbox.mapboxsdk.style.layers.PropertyFactory.lineWidth;
 
-public class MapRoute extends AppCompatActivity {
+public class MapRoute extends AppCompatActivity implements View.OnClickListener {
     private static final String ROUTE_LAYER_ID = "route-layer-id";
     private static final String ROUTE_SOURCE_ID = "route-source-id";
     private static final String ICON_LAYER_ID = "icon-layer-id";
@@ -78,6 +82,9 @@ public class MapRoute extends AppCompatActivity {
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
 
+        Button TravelInfo = findViewById(R.id.travelInfo);
+        TravelInfo.setOnClickListener(this);
+
         mapView.getMapAsync(new OnMapReadyCallback() {
             @Override
             public void onMapReady(@NonNull MapboxMap mapboxMap) {
@@ -93,8 +100,10 @@ public class MapRoute extends AppCompatActivity {
                         double olongitude = Double.parseDouble(olng);
                         String dlat = sm.getString( SessionManager.KEY_DLATITUDE, "dest_latitude");
                         double dlatitude = Double.parseDouble(dlat);
-                        String dlng = sm.getString( SessionManager.KEY_DLONGITUDE, "dest_latitude");
+                        String dlng = sm.getString( SessionManager.KEY_DLONGITUDE, "dest_longitude");
                         double dlongitude = Double.parseDouble(dlng);
+
+                        System.out.println("olati=>"+ dlatitude);
 
                         // Set the origin location to the Alhambra landmark in Granada, Spain.
                         origin = Point.fromLngLat(olongitude, olatitude);
@@ -121,6 +130,17 @@ public class MapRoute extends AppCompatActivity {
                 });
             }
         });
+    }
+
+    //Onclick listener for showing travel information in pop up dialog box.
+    @Override
+    public void onClick(View v) {
+        openDialog();
+    }
+
+    public void openDialog(){
+        RideInfo rideInfo = new RideInfo();
+        rideInfo.show(getSupportFragmentManager(), "Ride Information");
     }
 
 
@@ -200,7 +220,24 @@ public class MapRoute extends AppCompatActivity {
 //                Toast.makeText(MapRoute.this, String.format(
 //                        getString(R.string.directions_activity_toast_message),
 //                        currentRoute.distance()), Toast.LENGTH_SHORT).show();
+
+                double PriceM = 0.02;
+                double Distance = currentRoute.distance();
+                int RouteDistance = (int)Math.round(Distance);
+                String TotalDistance = Double.toString(Distance);
+                double Price = RouteDistance * PriceM;
+                int TotalPrice = (int)Math.round(Price);
+                String Cost = String.valueOf(TotalPrice);
+                DistanceNPrice distanceNPrice = new DistanceNPrice(
+                        TotalDistance,
+                        Cost
+                );
+                //Storing the user object details in SessionManager
+                SessionManager.getInstance(getApplicationContext()).DistancePrice(distanceNPrice);
+
                 System.out.println("distance==>" + currentRoute.distance());
+                System.out.println("Cost==>" + Cost);
+
 
 
                 if (mapboxMap != null) {

@@ -188,7 +188,7 @@ public class Login extends AppCompatActivity implements Response.ErrorListener, 
 
             //Creating a new object for the Users class
             Users user = new Users(
-                    obj.getInt("id"),
+                    obj.getString("id"),
                     obj.getString("fullname"),
                     obj.getString("email"),
                     obj.getString("phoneno"),

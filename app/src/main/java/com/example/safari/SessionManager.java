@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 
 import com.example.safari.Models.DLocation;
+import com.example.safari.Models.DistanceNPrice;
 import com.example.safari.Models.Users;
 import com.example.safari.Models.destinationLocation;
 import com.example.safari.Models.originLocation;
@@ -24,7 +25,7 @@ public class SessionManager {
         public static final String KEY_DLATITUDE = "dest_latitude";
         public static final String KEY_DLONGITUDE = "dest_longitude";
         public static final String KEY_DISTANCE = "total_distance";
-        public static final String KEY_PRICE = "total_price";
+        public static final String  KEY_PRICE = "total_price";
 
 
     private static SessionManager mInstance;
@@ -45,6 +46,7 @@ public class SessionManager {
         public void userLogin(Users user) {
             SharedPreferences sharedPreferences = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString(KEY_ID, user.getId());
             editor.putString(KEY_USERNAME, user.getName());
             editor.putString(KEY_PHONENO, user.getPhoneno());
             editor.putString(KEY_EMAIL , user.getEmail());
@@ -89,6 +91,14 @@ public class SessionManager {
             SharedPreferences.Editor editor = destinationCoordinates.edit();
             editor.putString(KEY_DLATITUDE, destLocation.getDLatitude());
             editor.putString(KEY_DLONGITUDE, destLocation.getDLongitude());
+            editor.apply();
+        }
+
+        public void DistancePrice(DistanceNPrice distanceNPrice){
+            SharedPreferences rideInfo = ctx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = rideInfo.edit();
+            editor.putString(KEY_DISTANCE, distanceNPrice.getDistance());
+            editor.putString(KEY_PRICE, distanceNPrice.getPrice());
             editor.apply();
         }
 
